@@ -2,6 +2,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
+use App\Observers\SendEmailObserver;  // Importar el observador que vas a crear
 use Illuminate\Http\Request;
 
 class PostController extends Controller
@@ -20,15 +21,14 @@ class PostController extends Controller
             'content' => 'required|string',
         ]);
 
-        // Crear el nuevo post
-        $post = Post::create([
-            'title' => $request->title,
+        // Crear el post y adjuntar el observador
+        $post = Post::createAndNotify([
+            'title' => $request->input('title'),
             'content' => $request->input('content'),
-        ]);
-        
+        ], new SendEmailObserver());
 
-        // Enviar el post recién creado a la vista como confirmación (opcional)
+        echo "Post creado y notificado: " . $post->title . PHP_EOL;
+
         return redirect()->route('posts.create')->with('success', 'Post creado: ' . $post->title);
     }
 }
-
